@@ -1,4 +1,4 @@
-# SN2 Cheat
+# SN2 Cheat (COMING OUT VERY SOON!)
 
 A trainer / control panel for **Subnautica 2** (built on Unreal Engine 5.6).
 By **zxkuhl** — for personal / co-op use with consenting players.
