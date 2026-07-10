@@ -23,6 +23,7 @@ required and you may not claim `SN2Cheat.dll` or this API as your own original w
 exactly **one JSON line** per command:
 - `pings` → a pings object
 - `players` → a players object
+- `esp` → an ESP object (on-screen player boxes)
 - everything else → a fresh `status` object
 
 Poll `status\n` (e.g. once per second) to keep live state.
@@ -37,6 +38,7 @@ Poll `status\n` (e.g. once per second) to keep live state.
 | `status` | Returns the status object (below). |
 | `players` | Returns the connected-players list. |
 | `pings` | Returns the signal/beacon list. |
+| `esp` | Returns projected on-screen boxes for all other players (below). |
 
 ### Cheat toggles
 | Command | Description |
@@ -49,6 +51,12 @@ Poll `status\n` (e.g. once per second) to keep live state.
 | `set fly 0\|1` | Fly / noclip. |
 | `toggle <name>` | Flip any of the above (`god`,`o2`,`food`,`speed`,`bright`,`fly`). |
 | `speedmult <1..30>` | Speed multiplier. |
+
+### Camera
+| Command | Description |
+|---|---|
+| `fov <30..170>` | Lock the camera field of view to this value. |
+| `fov off` | Release the FOV lock back to the game. |
 
 ### Teleport
 | Command | Description |
@@ -76,6 +84,17 @@ Poll `status\n` (e.g. once per second) to keep live state.
 | `bind <god\|o2\|food\|all\|speed> <vkCode>` | Rebind a hotkey (0 = unbound). |
 | `console 0\|1` | Hide/show the cheat's console window. |
 
+### Name spoof
+| Command | Description |
+|---|---|
+| `spoofname <text>` | Replace **your** displayed name with `text`. |
+| `spoofname all <text>` | Replace **every** player's displayed name (your view). |
+| `spoofname off` | Restore the real name(s). |
+
+> The spoof is written into the existing name buffer, so `text` is truncated to the
+> length of the real name. It's client-side unless you're the host; some UI elements
+> cache the name and may not refresh immediately.
+
 ---
 
 ## Response schemas
@@ -84,13 +103,14 @@ Poll `status\n` (e.g. once per second) to keep live state.
 ```json
 {
   "author": "zxkuhl",
-  "version": "1.0.0",
-  "latest": "1.0.0",
+  "version": "1.1.0",
+  "latest": "1.1.0",
   "outdated": false,
   "ready": true,
   "god": false, "o2": true, "food": false,
   "speed": false, "speedmult": 3.0,
   "bright": false, "fly": false,
+  "fov": false, "fovval": 90,
   "px": -337218.3, "py": 433434.7, "pz": 234.6,
   "saved": false,
   "binds": { "god": 112, "o2": 113, "food": 114, "all": 115, "speed": 116 }
@@ -99,6 +119,7 @@ Poll `status\n` (e.g. once per second) to keep live state.
 - `ready` — true once you're in a world (attribute classes resolved).
 - `outdated` — true when the DLL version doesn't match the remote version; while
   outdated the DLL blocks all mutating commands.
+- `fov` — whether a custom FOV lock is active; `fovval` — the locked value.
 - `px/py/pz` — your live world position (Unreal units).
 - `binds` — hotkey virtual-key codes.
 
@@ -111,6 +132,22 @@ Poll `status\n` (e.g. once per second) to keep live state.
 ```json
 { "pings": [ { "name": "Lifepod", "x": -337218.3, "y": 433434.7, "z": 234.6 } ] }
 ```
+
+### `esp`
+```json
+{
+  "esp": {
+    "vw": 1920, "vh": 1080,
+    "players": [
+      { "name": "Wu", "hp": 0.85, "dist": 42, "x": 910, "y": 400, "w": 60, "h": 150 }
+    ]
+  }
+}
+```
+- `vw/vh` — the game's viewport size the boxes were projected against; scale the
+  coordinates to your own canvas by `yourWidth/vw` × `yourHeight/vh`.
+- Per player: `name`, `hp` (0–1 fraction of max health), `dist` (metres), and the
+  screen-space box `x,y` (top-left) `w,h`. Only players currently on screen appear.
 
 ---
 
